@@ -76,7 +76,7 @@ RUN chmod ugo=rwx /opt/factorio &&\
 RUN mod_updater_version="0.2.4" &&\
     wget https://github.com/pdemonaco/factorio-mod-updater/archive/refs/tags/${mod_updater_version}.tar.gz -O /tmp/mod_updater.tar.gz &&\
     tar -axf /tmp/mod_updater.tar.gz --directory /tmp &&\
-    cp /tmp/factorio-mod-updater-${mod_updater_version}/mod_updater.py /factorio/mod_updater.py
+    cp /tmp/factorio-mod-updater-${mod_updater_version}/mod_updater.py /opt/factorio/mod_updater.py
 
 USER factorio
 
