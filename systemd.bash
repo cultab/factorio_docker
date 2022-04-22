@@ -50,13 +50,15 @@ case "$ans" in
     * ) ;;
 esac
 
-read -r -p "Create start and stop shortcuts? [Y/n] " ans
+read -r -p "Create start, stop and logtail shortcuts? [Y/n] " ans
 case "$ans" in
     [Yy]*)
         echo "sudo systemctl start $SERVICENAME" > ./start
         echo "sudo systemctl stop  $SERVICENAME" > ./stop
+        echo "sudo journalctl -f -u $SERVICENAME" > ./logtail
         chmod +x ./start
         chmod +x ./stop
+        chmod +x ./logtail
         echo "Done!"
         ;;
     * ) ;;
