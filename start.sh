@@ -10,7 +10,7 @@ mods_path="/opt/factorio/mods"
 
 echo ${ACCOUNT} ${TOKEN}
 
-python3 /factorio/mod_updater.py \
+python3 /opt/factorio/mod_updater.py \
         --fact-path $fact_path \
         --mod-directory $mods_path \
         -u ${ACCOUNT} -t ${TOKEN} --update
