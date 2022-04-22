@@ -39,7 +39,7 @@ case "$ans" in
     * ) ;;
 esac
 
-read -r -p "Start enable and start service? [Y/n] " ans
+read -r -p "Enable and start service? [Y/n] " ans
 case "$ans" in
     [Yy]*)
         sudo systemctl enable "${SERVICENAME}.service" ||\
