@@ -34,12 +34,32 @@ read -r -p "Install service? [Y/n] " ans
 case "$ans" in
     [Yy]*)
         sudo cp "${SERVICENAME}.service" "/etc/systemd/system/${SERVICENAME}.service" ||\
-            echo "Failed installing service!" && exit 1
+            (echo "Failed installing service!" && exit 1)
         echo "Installed service into /etc/systemd/system/${SERVICENAME}.service";;
     * ) ;;
 esac
 
+read -r -p "Start enable and start service? [Y/n] " ans
+case "$ans" in
+    [Yy]*)
+        sudo systemctl enable "${SERVICENAME}.service" ||\
+            (echo "Failed enabling service!" && exit 1)
+        sudo systemctl start "${SERVICENAME}.service" ||\
+            (echo "Failed starting service!" && exit 1)
+        echo "Started service!";;
+    * ) ;;
+esac
 
+read -r -p "Create start and stop shortcuts? [Y/n] " ans
+case "$ans" in
+    [Yy]*)
+        echo "sudo systemctl start $SERVICENAME" > ./start
+        echo "sudo systemctl stop  $SERVICENAME" > ./stop
+        chmod +x ./start
+        chmod +x ./stop
+        echo "Done!"
+        ;;
+    * ) ;;
+esac
 
-
-
+sudo systemctl daemon-reload

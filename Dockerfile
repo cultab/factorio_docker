@@ -107,10 +107,10 @@ RUN chmod ug=rwx /opt/factorio &&\
     chown -R "$USER":"$GROUP" /opt/factorio /factorio
 
 # install start script
-COPY start.sh /opt/factorio/start.sh
-RUN chmod ug=rwx /opt/factorio/start.sh &&\
-    chown "$USER":"$GROUP" /opt/factorio/start.sh
+COPY start_factorio.sh /opt/factorio/start_factorio.sh
+RUN chmod ug=rwx /opt/factorio/start_factorio.sh &&\
+    chown "$USER":"$GROUP" /opt/factorio/start_factorio.sh
 
 # start!
 USER factorio
-CMD ["/bin/sh", "-c", "/opt/factorio/start.sh"]
+CMD ["/bin/sh", "-c", "/opt/factorio/start_factorio.sh"]
