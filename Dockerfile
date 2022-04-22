@@ -15,7 +15,9 @@ ENV PORT=34197 \
     CONFIG=/factorio/config \
     MODS=/factorio/mods \
     SCENARIOS=/factorio/scenarios \
-    SCRIPTOUTPUT=/factorio/script-output
+    SCRIPTOUTPUT=/factorio/script-output \
+    ACCOUNT=${ACCOUNT} \
+    TOKEN=${TOKEN}
 
 # update and install required packages
 RUN apt-get update &&\
@@ -32,8 +34,10 @@ RUN apt-get update &&\
                        software-properties-common \
                        apt-transport-https \
                        python3 \
+                       python3-pip \
                        lib32stdc++6 &&\
-    apt-get clean
+    apt-get clean &&\
+    python3 -m pip install requests
 
 # install factorio
 RUN if [ "${VERSION}" = "" ]; then \
@@ -55,25 +59,26 @@ RUN if [ "${VERSION}" = "" ]; then \
     rm "$archive"
 
 COPY files/config.ini /opt/factorio/config/config.ini
-COPY files/start.sh /opt/factorio/start.sh
+COPY start.sh /opt/factorio/start.sh
+COPY files/env /opt/factorio/env
 
+# user/ownership
 RUN chmod ugo=rwx /opt/factorio &&\
     ln -s "$SCENARIOS" /opt/factorio/scenarios &&\
     ln -s "$SAVES" /opt/factorio/saves &&\
+    ln -s "$MODS" /opt/factorio/mods &&\
     mkdir -p /opt/factorio/config/ &&\
-    adduser "$USER" &&\
-    chown -R "$USER":"$GROUP" /opt/factorio /factorio
+    adduser --disabled-password --gecos "" "$USER" &&\
+    chown -R "$USER":"$GROUP" /opt/factorio /factorio &&\
+    chmod +x /opt/factorio/start.sh
 
-RUN chmod +x /opt/factorio/start.sh
-
-
-RUN mod_updater_version="0.2.4" \
-    wget https://github.com/pdemonaco/factorio-mod-updater/archive/refs/tags/${mod_updater_version}.tar.gz &&\
-    tar -axf ${mod_updater_version}.tar.gz &&\
-    cp ${mod_updater_version}/mod_updater.py /factorio &&\
-
-
+# install mod_updater
+RUN mod_updater_version="0.2.4" &&\
+    wget https://github.com/pdemonaco/factorio-mod-updater/archive/refs/tags/${mod_updater_version}.tar.gz -O /tmp/mod_updater.tar.gz &&\
+    tar -axf /tmp/mod_updater.tar.gz --directory /tmp &&\
+    cp /tmp/factorio-mod-updater-${mod_updater_version}/mod_updater.py /factorio/mod_updater.py
 
 USER factorio
 
-CMD /opt/factorio/start.sh
+# start!
+CMD ["/opt/factorio/start.sh"]
