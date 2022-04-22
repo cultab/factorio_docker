@@ -1,24 +1,21 @@
-version: '2'
+version: '1'
 services:
   factorio:
     build:
       context: .
       args:
-      # Check buildinfo.json for supported versions and SHAs
-      # https://github.com/factoriotools/factorio-docker/blob/master/buildinfo.json
       - VERSION=1.1.57
-      - SHA256=YOLO #skip check
-      # - VERSION=1.1.39
-      # - SHA256=5528b8e23ac5d3a13e3328a0c64fee71f4a321792afe7b2fe46f95e62b7ed119
+      - SHA256=b561ddcbe4f69a3e565111df16600b07ebd4b246aded699e69eabaefeee5c5f8
+      - FACTORIO_UPDATER_COMMIT=ac977cd4984bc2ffa4de391f07b119402da23919
+      - FACTORIO_UPDATER_SHA256=e80593f41e9598097ca412f69c4a58e9192c017c1e2a635469083eed584fb1ab
+      - MOD_UPDATER_VERSION=0.2.4
+      - MOD_UPDATER_SHA256=e5fd29d611c415309af05de7d856b488288fc5e4d022ac9d5e09cbed9f9d3610
     ports:
      - "34197:34197/udp"
      # - "27015:27015/tcp"
     volumes:
-     - /home/evan/repos/factorio_server/files:/factorio
-#    environment:
-#      - PUID=1000
-#      - PGID=1000
-#      - UPDATE_MODS_ON_START=true
-#      - USERNAME=FactorioUsername
-#      - TOKEN=FactorioToken
-#      - PORT=34198
+     - ./files:/factorio
+    env_file: auth.env
+    environment:
+     - UPDATE_GAME_ON_START=true
+     - UPDATE_MODS_ON_START=true

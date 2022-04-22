@@ -6,18 +6,18 @@ ARG GROUP=factorio
 # version checksum of the archive to download
 ARG VERSION
 ARG SHA256
+ARG FACTORIO_UPDATER_COMMIT
+ARG FACTORIO_UPDATER_SHA256
+ARG MOD_UPDATER_VERSION
+ARG MOD_UPDATER_SHA256
 
 ENV PORT=34197 \
-    RCON_PORT=27015 \
-    VERSION=${VERSION} \
-    SHA256=${SHA256} \
     SAVES=/factorio/saves \
     CONFIG=/factorio/config \
     MODS=/factorio/mods \
     SCENARIOS=/factorio/scenarios \
-    SCRIPTOUTPUT=/factorio/script-output \
-    ACCOUNT=${ACCOUNT} \
-    TOKEN=${TOKEN}
+    SCRIPTOUTPUT=/factorio/script-output
+    # RCON_PORT=27015 \
 
 # update and install required packages
 RUN apt-get update &&\
@@ -40,29 +40,69 @@ RUN apt-get update &&\
     python3 -m pip install requests
 
 # install factorio
-RUN if [ "${VERSION}" = "" ]; then \
+RUN if [ "$VERSION" = "" ]; then \
         echo "build-arg VERSION is required" &&\
         exit 1; \
     fi &&\
-    if [ "${SHA256}" = "" ]; then \
+    if [ "$SHA256" = "" ]; then \
         echo "build-arg SHA256 is required" &&\
         exit 1; \
     fi &&\
-    archive="/tmp/factorio_headless_x64_$VERSION.tar.xz" &&\
+    archive="/tmp/factorio_headless_x64_${VERSION}.tar.xz" &&\
     mkdir -p /opt /factorio &&\
-    curl -sSL "https://www.factorio.com/get-download/$VERSION/headless/linux64" -o "$archive" &&\
-    if [ "$SHA256" != "YOLO" ]; then \
-        echo "$SHA256  $archive" | sha256sum -c \
-            || (sha256sum "$archive" && file "$archive" && exit 1) \
+    curl -sSL "https://www.factorio.com/get-download/${VERSION}/headless/linux64" -o "$archive" &&\
+    if [ "$SHA256" != "SKIP" ]; then \
+        echo "$SHA256  $archive" | sha256sum -c || (sha256sum "$archive" && file "$archive" && exit 1) \
     fi && \
     tar -axf "$archive" --directory /opt &&\
     rm "$archive"
 
-COPY files/config.ini /opt/factorio/config/config.ini
-COPY start.sh /opt/factorio/start.sh
-COPY files/env /opt/factorio/env
+# install factorio-updater
+RUN if [ "${FACTORIO_UPDATER_COMMIT}" = "" ]; then \
+        echo "build-arg FACTORIO_UPDATER_COMMIT is required" &&\
+        exit 1; \
+    fi &&\
+    if [ "${FACTORIO_UPDATER_SHA256}" = "" ]; then \
+        echo "build-arg FACTORIO_UPDATER_SHA256 is required" &&\
+        exit 1; \
+    fi &&\
+    archive="/tmp/factorio_updater.zip" &&\
+    mkdir -p /opt /factorio &&\
+    curl -sSL "https://github.com/narc0tiq/factorio-updater/archive/${FACTORIO_UPDATER_COMMIT}.zip" -o "$archive" &&\
+    if [ "$FACTORIO_UPDATER_SHA256" != "SKIP" ]; then \
+        echo "$FACTORIO_UPDATER_SHA256  $archive" | sha256sum -c || (sha256sum "$archive" && file "$archive" && exit 1) \
+    fi && \
+    7z e "$archive" -o"/tmp/factorio-updater-${FACTORIO_UPDATER_COMMIT}" &&\
+    rm "$archive" &&\
+    cp "/tmp/factorio-updater-${FACTORIO_UPDATER_COMMIT}/update_factorio.py" /opt/factorio/update_factorio.py &&\
+    rm -rf "/tmp/factorio-updater-${FACTORIO_UPDATER_COMMIT}/"
 
-# user/ownership
+# install mod_updater.py
+RUN if [ "$MOD_UPDATER_VERSION" = "" ]; then \
+        echo "build-arg MOD_UPDATER_VERSION is required" &&\
+        exit 1; \
+    fi &&\
+    if [ "$MOD_UPDATER_SHA256" = "" ]; then \
+        echo "build-arg MOD_UPDATER_SHA256 is required" &&\
+        exit 1; \
+    fi &&\
+    archive="/tmp/${MOD_UPDATER_VERSION}.tar.gz" &&\
+    mkdir -p /opt /factorio &&\
+    curl -sSL "https://github.com/pdemonaco/factorio-mod-updater/archive/refs/tags/${MOD_UPDATER_VERSION}.tar.gz" -o "$archive" &&\
+    if [ "$MOD_UPDATER_SHA256" != "SKIP" ]; then \
+        echo "$MOD_UPDATER_SHA256  $archive" | sha256sum -c || (sha256sum "$archive" && file "$archive" && exit 1) \
+    fi && \
+    tar -axf "$archive" --directory /tmp/ &&\
+    rm "$archive" &&\
+    cp "/tmp/factorio-mod-updater-${MOD_UPDATER_VERSION}/mod_updater.py" /opt/factorio/mod_updater.py &&\
+    rm -rf "/tmp/factorio-mod-updater-${MOD_UPDATER_VERSION}/"
+
+# copy configuration and start script
+COPY files/config.ini /opt/factorio/config/config.ini
+COPY files/env /opt/factorio/env
+COPY start.sh /opt/factorio/start.sh
+
+# user/ownership and symlinks
 RUN chmod ugo=rwx /opt/factorio &&\
     ln -s "$SCENARIOS" /opt/factorio/scenarios &&\
     ln -s "$SAVES" /opt/factorio/saves &&\
@@ -72,13 +112,7 @@ RUN chmod ugo=rwx /opt/factorio &&\
     chown -R "$USER":"$GROUP" /opt/factorio /factorio &&\
     chmod +x /opt/factorio/start.sh
 
-# install mod_updater
-RUN mod_updater_version="0.2.4" &&\
-    wget https://github.com/pdemonaco/factorio-mod-updater/archive/refs/tags/${mod_updater_version}.tar.gz -O /tmp/mod_updater.tar.gz &&\
-    tar -axf /tmp/mod_updater.tar.gz --directory /tmp &&\
-    cp /tmp/factorio-mod-updater-${mod_updater_version}/mod_updater.py /opt/factorio/mod_updater.py
-
 USER factorio
 
 # start!
-CMD ["/opt/factorio/start.sh"]
+CMD ["bin/sh", "-c", "/opt/factorio/start.sh"]
