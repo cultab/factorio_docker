@@ -11,13 +11,11 @@ ARG FACTORIO_UPDATER_SHA256
 ARG MOD_UPDATER_VERSION
 ARG MOD_UPDATER_SHA256
 
-ENV PORT=34197 \
-    SAVES=/factorio/saves \
+ENV SAVES=/factorio/saves \
     CONFIG=/factorio/config \
     MODS=/factorio/mods \
     SCENARIOS=/factorio/scenarios \
     SCRIPTOUTPUT=/factorio/script-output
-    # RCON_PORT=27015 \
 
 # update and install required packages
 RUN apt-get update &&\
@@ -97,22 +95,22 @@ RUN if [ "$MOD_UPDATER_VERSION" = "" ]; then \
     cp "/tmp/factorio-mod-updater-${MOD_UPDATER_VERSION}/mod_updater.py" /opt/factorio/mod_updater.py &&\
     rm -rf "/tmp/factorio-mod-updater-${MOD_UPDATER_VERSION}/"
 
-# copy configuration and start script
-COPY files/config.ini /opt/factorio/config/config.ini
-COPY files/env /opt/factorio/env
-COPY start.sh /opt/factorio/start.sh
+RUN adduser --disabled-password --gecos "" "$USER"
 
-# user/ownership and symlinks
-RUN chmod ugo=rwx /opt/factorio &&\
+# ownership and symlink /factorio with actual locations
+RUN chmod ug=rwx /opt/factorio &&\
+    mkdir -p /opt/factorio/config/ &&\
     ln -s "$SCENARIOS" /opt/factorio/scenarios &&\
+    ln -s "$CONFIG" /opt/factorio/config &&\
     ln -s "$SAVES" /opt/factorio/saves &&\
     ln -s "$MODS" /opt/factorio/mods &&\
-    mkdir -p /opt/factorio/config/ &&\
-    adduser --disabled-password --gecos "" "$USER" &&\
-    chown -R "$USER":"$GROUP" /opt/factorio /factorio &&\
-    chmod +x /opt/factorio/start.sh
+    chown -R "$USER":"$GROUP" /opt/factorio /factorio
 
-USER factorio
+# install start script
+COPY start.sh /opt/factorio/start.sh
+RUN chmod ug=rwx /opt/factorio/start.sh &&\
+    chown "$USER":"$GROUP" /opt/factorio/start.sh
 
 # start!
-CMD ["bin/sh", "-c", "/opt/factorio/start.sh"]
+USER factorio
+CMD ["/bin/sh", "-c", "/opt/factorio/start.sh"]

@@ -5,6 +5,19 @@
 # data_path="/opt/factorio/player-data.json"
 # settings_path="/opt/factorio/data/server-settings.json"
 
+factorio="/opt/factorio/bin/x64/factorio"
+
+# configure rcon
+factorio="$factorio --rcon-port 27015"
+
+if [ -z "$RCON_PASSWORD" ]; then
+    RCON_PASSWORD=$(tr -dc 'a-f0-9' < /dev/urandom | head -c16)
+    echo "RCON password is: '$RCON_PASSWORD'"
+fi
+
+echo "Setting rcon password.."
+factorio="$factorio --rcon-password ${RCON_PASSWORD}"
+
 # update mods if needed
 if [ "$UPDATE_GAME_ON_START" ]; then
     echo "Updating factorio.."
@@ -12,7 +25,6 @@ if [ "$UPDATE_GAME_ON_START" ]; then
             --apply-to /opt/factorio/bin/x64/factorio \
             --delete-after-applying \
             -u "${USERNAME}" -t "${TOKEN}"
-            # --server-settings $settings_path \
 fi
 
 # update mods if needed
@@ -22,18 +34,17 @@ if [ "$UPDATE_MODS_ON_START" ]; then
             --fact-path /opt/factorio/bin/x64/factorio \
             --mod-directory /opt/factorio/mods \
             -u "${USERNAME}" -t "${TOKEN}" --update
-            # --server-settings $settings_path \
 fi
 
 # test if save already exists
 if ! find "/factorio/saves/" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
     # if not create it
     echo "Creating new save.."
-    /opt/factorio/bin/x64/factorio --create /factorio/saves/new_save.zip
+    $factorio --create /factorio/saves/new_save.zip
     echo "Now loading newly created save.."
 else
     echo "Loading lastest save.."
 fi
 
 # now start
-/opt/factorio/bin/x64/factorio --start-server-load-latest
+$factorio --start-server-load-latest

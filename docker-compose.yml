@@ -1,6 +1,7 @@
-version: '1'
+version: '2'
 services:
   factorio:
+    image: factorio_server
     build:
       context: .
       args:
@@ -12,10 +13,10 @@ services:
       - MOD_UPDATER_SHA256=e5fd29d611c415309af05de7d856b488288fc5e4d022ac9d5e09cbed9f9d3610
     ports:
      - "34197:34197/udp"
-     # - "27015:27015/tcp"
+     - "27015:27015/tcp"
     volumes:
-     - ./files:/factorio
+     - ./data:/factorio
     env_file: auth.env
     environment:
-     - UPDATE_GAME_ON_START=true
+     - UPDATE_GAME_ON_START=false
      - UPDATE_MODS_ON_START=true
