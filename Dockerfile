@@ -3,14 +3,6 @@ FROM debian:10
 ARG USER=factorio
 ARG GROUP=factorio
 
-# version checksum of the archive to download
-ARG VERSION
-ARG SHA256
-ARG FACTORIO_UPDATER_COMMIT
-ARG FACTORIO_UPDATER_SHA256
-ARG MOD_UPDATER_VERSION
-ARG MOD_UPDATER_SHA256
-
 ENV SAVES=/factorio/saves \
     CONFIG=/factorio/config \
     MODS=/factorio/mods \
@@ -37,12 +29,16 @@ RUN apt-get update &&\
     apt-get clean &&\
     python3 -m pip install requests
 
+# version checksum of the archive to download
+ARG VERSION
+ARG SHA256
+
 # install factorio
-RUN if [ "$VERSION" = "" ]; then \
+RUN if [ -z "$VERSION" ]; then \
         echo "build-arg VERSION is required" &&\
         exit 1; \
     fi &&\
-    if [ "$SHA256" = "" ]; then \
+    if [ -z "$SHA256" ]; then \
         echo "build-arg SHA256 is required" &&\
         exit 1; \
     fi &&\
@@ -55,12 +51,15 @@ RUN if [ "$VERSION" = "" ]; then \
     tar -axf "$archive" --directory /opt &&\
     rm "$archive"
 
+ARG FACTORIO_UPDATER_COMMIT
+ARG FACTORIO_UPDATER_SHA256
+
 # install factorio-updater
-RUN if [ "${FACTORIO_UPDATER_COMMIT}" = "" ]; then \
+RUN if [ -z "${FACTORIO_UPDATER_COMMIT}" ]; then \
         echo "build-arg FACTORIO_UPDATER_COMMIT is required" &&\
         exit 1; \
     fi &&\
-    if [ "${FACTORIO_UPDATER_SHA256}" = "" ]; then \
+    if [ -z "${FACTORIO_UPDATER_SHA256}" ]; then \
         echo "build-arg FACTORIO_UPDATER_SHA256 is required" &&\
         exit 1; \
     fi &&\
@@ -75,12 +74,15 @@ RUN if [ "${FACTORIO_UPDATER_COMMIT}" = "" ]; then \
     cp "/tmp/factorio-updater-${FACTORIO_UPDATER_COMMIT}/update_factorio.py" /opt/factorio/update_factorio.py &&\
     rm -rf "/tmp/factorio-updater-${FACTORIO_UPDATER_COMMIT}/"
 
+ARG MOD_UPDATER_VERSION
+ARG MOD_UPDATER_SHA256
+
 # install mod_updater.py
-RUN if [ "$MOD_UPDATER_VERSION" = "" ]; then \
+RUN if [ -z "$MOD_UPDATER_VERSION" ]; then \
         echo "build-arg MOD_UPDATER_VERSION is required" &&\
         exit 1; \
     fi &&\
-    if [ "$MOD_UPDATER_SHA256" = "" ]; then \
+    if [ -z "$MOD_UPDATER_SHA256" ]; then \
         echo "build-arg MOD_UPDATER_SHA256 is required" &&\
         exit 1; \
     fi &&\

@@ -1,4 +1,3 @@
-version: '2'
 services:
   factorio:
     image: factorio_server
@@ -6,7 +5,7 @@ services:
       context: .
       args:
       - VERSION=1.1.57
-      - SHA256=b561ddcbe4f69a3e565111df16600b07ebd4b246aded699e69eabaefeee5c5f8
+      - SHA256=04d2a6c535f576f35c2d943d46afdc586b11cdb50cf53989b01358d03d650f22
       - FACTORIO_UPDATER_COMMIT=ac977cd4984bc2ffa4de391f07b119402da23919
       - FACTORIO_UPDATER_SHA256=e80593f41e9598097ca412f69c4a58e9192c017c1e2a635469083eed584fb1ab
       - MOD_UPDATER_VERSION=0.2.4

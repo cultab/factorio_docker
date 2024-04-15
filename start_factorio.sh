@@ -19,7 +19,7 @@ echo "Setting rcon password.."
 factorio="$factorio --rcon-password ${RCON_PASSWORD}"
 
 # update mods if needed
-if [ "$UPDATE_GAME_ON_START" ]; then
+if [ "$UPDATE_GAME_ON_START" = "true" ]; then
     echo "Updating factorio.."
     python3 /opt/factorio/update_factorio.py \
             --apply-to /opt/factorio/bin/x64/factorio \
@@ -28,7 +28,7 @@ if [ "$UPDATE_GAME_ON_START" ]; then
 fi
 
 # update mods if needed
-if [ "$UPDATE_MODS_ON_START" ]; then
+if [ "$UPDATE_MODS_ON_START" = "true" ]; then
     echo "Updating mods.."
     python3 /opt/factorio/mod_updater.py \
             --fact-path /opt/factorio/bin/x64/factorio \
